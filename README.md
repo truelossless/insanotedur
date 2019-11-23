@@ -23,3 +23,14 @@ Ces paramètres doivent être remplis:
 Le bot postera automatiquement un message dans tous les serveurs où il est, dans le channel #notifs-partiels.
 
 Le projet est sous licence MIT donc fais en ce que tu veux :)
+
+## Commandes
+
+### Discord
+
+yo: le bot répond avec broooo. Permet de savoir si le bot fonctionne bien.
+
+### CLI
+
+idle: active/désactive le mode idle (n'envoie pas de requête mais réagit aux msgs Discord)
+debug: active/désactive les messages de debug.

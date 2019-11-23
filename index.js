@@ -24,17 +24,87 @@ client.on("message", async msg => {
 let map = {};
 let browser, page;
 
+// on utilise un paramètre pour stopper le scrapping hors-partiel.
+let idle = false;
+let debug = false;
+
+var stdin = process.openStdin();
+
+stdin.addListener("data", d => {
+
+    const input = d.toString().trim();
+    
+    if(input === 'idle') {
+
+        if(idle) {
+            idle = false;
+            console.log('Le bot est maintenant actif.');
+        } else {
+            idle = true;
+            console.log('Le bot est passé en mode idle.');
+        }
+    } else if(input === 'debug') {
+        if(debug) {
+            debug = false,
+            console.log('Mode debug désactivé.');
+        } else {
+            debug = true;
+            console.log('Mode debug activé.');
+        }
+    } else {
+        console.log('Commandes valides: idle, debug');
+    }
+});
+
 (async () => {
     browser = await puppeteer.launch();
     page = await browser.newPage();
 
-    cycle(config.frequency * 1000, true);
+    await scrape(true);
+    console.log('\nInitialisation terminée.\nRecherche de nouvelles notes toutes les ' + config.frequency + 's en cours ...');
+    
+    setInterval(async () => {
+        
+        if(idle) {
+            if(debug) {
+                console.log('Requête annulée: idle');
+            }    
+            return;
+        }
+
+
+        const date = new Date();
+        
+        // on ne récupère pas les notes le samedi et le dimanche
+        if(date.getDay() == 6 || date.getDay() == 0) {
+            if(debug) {
+                console.log('Requête annulée: week-end.');
+            }
+            return;
+        }
+
+        // on ne récupère pas les notes après 18h et avant 8h
+        if(date.getHours() >= 18 || date.getHours() < 8) {
+            if(debug) {
+                console.log('Requête annulée: nuit.');
+            }
+            return;
+        }
+        
+        if(debug) console.log('Nouvelle requête commencée.');
+        await scrape(false);
+        console.log('Requete terminée.');
+
+    }, config.frequency*1000);
 })();
 
+
+
 // requête toutes les x secondes
-async function cycle(frequency, init) {
+async function scrape(init) {
 
     try {
+        await page.goto('https://cas.insa-rennes.fr/cas/login?service=https://cas.insa-rennes.fr/cas/logout');
         await page.goto('https://cas.insa-rennes.fr/cas/login?service=https://ent.insa-rennes.fr/uPortal/Login%3FrefUrl%3D%2FuPortal%2Ff%2Finfosperso%2Fp%2FdossierAdmEtu.u19l1n17%2Fmax%2Frender.uP%253FpCp');
         await page.type('#username', config.username);
         await page.type('#password', config.password);
@@ -43,9 +113,7 @@ async function cycle(frequency, init) {
 
     } catch (e) {
         // des erreurs de navigations se produiront surement
-        console.warn('[catch] La page n\'a pas répondu.')
-        if (init) setTimeout(() => cycle(frequency, true), frequency);
-        else setTimeout(() => cycle(frequency, false), frequency);
+        console.warn('[catch] La page n\'a pas répondu.');
         return;
     }
 
@@ -56,8 +124,6 @@ async function cycle(frequency, init) {
         table = await page.evaluate(element => element.outerHTML, element);
     } catch (e) {
         console.warn('[catch] La page HTML est mal formée.');
-        if (init) setTimeout(() => cycle(frequency, true), frequency);
-        else setTimeout(() => cycle(frequency, false), frequency);
         return;
     }
 
@@ -88,11 +154,4 @@ async function cycle(frequency, init) {
             }
         }
     });
-
-    if (init) {
-        console.log('\nInitialisation terminée.\n Recherche de nouvelles notes toutes les ' + frequency / 1000 + 's en cours ...');
-    }
-
-    await page.goto('https://cas.insa-rennes.fr/cas/login?service=https://cas.insa-rennes.fr/cas/logout');
-    setTimeout(() => cycle(frequency, false), frequency);
 }
