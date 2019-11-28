@@ -93,7 +93,7 @@ stdin.addListener("data", d => {
         
         if(debug) console.log('Nouvelle requête commencée.');
         await scrape(false);
-        console.log('Requete terminée.');
+        if(debug) console.log('Requete terminée.');
 
     }, config.frequency*1000);
 })();
