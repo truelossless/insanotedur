@@ -34,3 +34,4 @@ yo: le bot répond avec broooo. Permet de savoir si le bot fonctionne bien.
 
 idle: active/désactive le mode idle (n'envoie pas de requête mais réagit aux msgs Discord)
 debug: active/désactive les messages de debug.
+msg [message]: envoie à tous les serveurs le message [message].

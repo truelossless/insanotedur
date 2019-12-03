@@ -28,13 +28,13 @@ let browser, page;
 let idle = false;
 let debug = false;
 
-var stdin = process.openStdin();
+const stdin = process.openStdin();
 
 stdin.addListener("data", d => {
 
-    const input = d.toString().trim();
+    const input = d.toString().trim().split();
     
-    if(input === 'idle') {
+    if(input[0] === 'idle' && input.length === 1) {
 
         if(idle) {
             idle = false;
@@ -43,7 +43,8 @@ stdin.addListener("data", d => {
             idle = true;
             console.log('Le bot est passé en mode idle.');
         }
-    } else if(input === 'debug') {
+    } else if(input[0] === 'debug' && input.length === 1) {
+        
         if(debug) {
             debug = false,
             console.log('Mode debug désactivé.');
@@ -51,8 +52,16 @@ stdin.addListener("data", d => {
             debug = true;
             console.log('Mode debug activé.');
         }
+
+    } else if(input[0] === 'msg' && input.length > 1) {
+
+        let msg = '';
+        for(let i=1; i<input.length; i++) {
+            msg += input[i];
+        }
+
     } else {
-        console.log('Commandes valides: idle, debug');
+        console.log('Commandes valides: debug, idle, msg');
     }
 });
 
@@ -147,7 +156,7 @@ async function scrape(init) {
             if (!map[topic] && markSubmitted) {
 
                 const emojis = ['😱', '😳', '😌', '🤕', '😇', '🤠', '😐'];
-                const yeet = 'Nouvelle note pour: ' + topic + ' ' + emojis[Math.floor(Math.random()*emojis.length)];
+                const yeet = 'Nouvelle note pour: ' + topic + ' ' + emojis[Math.floor(Math.random()*emojis.length)] + '\n@everyone';
                 map[topic] = true;
                 console.log(yeet);
                 client.channels.find(ch => ch.name == 'notifs-partiels').send(yeet);
