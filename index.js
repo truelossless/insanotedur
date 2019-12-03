@@ -48,9 +48,11 @@ stdin.addListener("data", d => {
     } else if (input[0] === 'msg' && input.length > 1) {
 
         let msg = '';
-        for (let i = 1; i < input.length; i++) {
+        for (let i = 1; i < input.length - 1; i++) {
             msg += input[i];
+            msg += ' ';
         }
+        msg += input[input.length - 1];
 
         client.channels.find(ch => ch.name == 'notifs-partiels').send(msg);
 
