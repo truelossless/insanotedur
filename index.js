@@ -13,14 +13,6 @@ const config = require('./config.json');
 //     frequency: 'intervalle de recherche en s'
 // }
 
-client.login(config.token);
-
-client.on("message", async msg => {
-    if(msg.content === 'yo') {
-        msg.reply('brooo !');
-    }
-});
-
 let map = {};
 let browser, page;
 
@@ -32,33 +24,35 @@ const stdin = process.openStdin();
 
 stdin.addListener("data", d => {
 
-    const input = d.toString().trim().split();
-    
-    if(input[0] === 'idle' && input.length === 1) {
+    const input = d.toString().trim().split(' ');
 
-        if(idle) {
+    if (input[0] === 'idle' && input.length === 1) {
+
+        if (idle) {
             idle = false;
             console.log('Le bot est maintenant actif.');
         } else {
             idle = true;
             console.log('Le bot est passé en mode idle.');
         }
-    } else if(input[0] === 'debug' && input.length === 1) {
-        
-        if(debug) {
+    } else if (input[0] === 'debug' && input.length === 1) {
+
+        if (debug) {
             debug = false,
-            console.log('Mode debug désactivé.');
+                console.log('Mode debug désactivé.');
         } else {
             debug = true;
             console.log('Mode debug activé.');
         }
 
-    } else if(input[0] === 'msg' && input.length > 1) {
+    } else if (input[0] === 'msg' && input.length > 1) {
 
         let msg = '';
-        for(let i=1; i<input.length; i++) {
+        for (let i = 1; i < input.length; i++) {
             msg += input[i];
         }
+
+        client.channels.find(ch => ch.name == 'notifs-partiels').send(msg);
 
     } else {
         console.log('Commandes valides: debug, idle, msg');
@@ -66,48 +60,61 @@ stdin.addListener("data", d => {
 });
 
 (async () => {
+
+    console.log('Lancement du bot ...');
+    try {
+        await client.login(config.token);
+        console.log('Connecté à l\'API Discord.\n')
+    } catch (e) {
+        console.error('Impossible de se connecter à l\'API Discord: ' + e);
+        process.exit(1);
+    }
+
     browser = await puppeteer.launch();
     page = await browser.newPage();
 
     await scrape(true);
     console.log('\nInitialisation terminée.\nRecherche de nouvelles notes toutes les ' + config.frequency + 's en cours ...');
-    
+
     setInterval(async () => {
-        
-        if(idle) {
-            if(debug) {
+
+        if (idle) {
+            if (debug) {
                 console.log('Requête annulée: idle');
-            }    
+            }
             return;
         }
 
-
         const date = new Date();
-        
+
         // on ne récupère pas les notes le samedi et le dimanche
-        if(date.getDay() == 6 || date.getDay() == 0) {
-            if(debug) {
+        if (date.getDay() == 6 || date.getDay() == 0) {
+            if (debug) {
                 console.log('Requête annulée: week-end.');
             }
             return;
         }
 
         // on ne récupère pas les notes après 18h et avant 8h
-        if(date.getHours() >= 18 || date.getHours() < 8) {
-            if(debug) {
+        if (date.getHours() >= 18 || date.getHours() < 8) {
+            if (debug) {
                 console.log('Requête annulée: nuit.');
             }
             return;
         }
-        
-        if(debug) console.log('Nouvelle requête commencée.');
-        await scrape(false);
-        if(debug) console.log('Requete terminée.');
 
-    }, config.frequency*1000);
+        if (debug) console.log('Nouvelle requête commencée.');
+        await scrape(false);
+        if (debug) console.log('Requete terminée.');
+
+    }, config.frequency * 1000);
 })();
 
-
+client.on("message", async msg => {
+    if (msg.content === 'yo') {
+        msg.reply('brooo !');
+    }
+});
 
 // requête toutes les x secondes
 async function scrape(init) {
@@ -156,7 +163,7 @@ async function scrape(init) {
             if (!map[topic] && markSubmitted) {
 
                 const emojis = ['😱', '😳', '😌', '🤕', '😇', '🤠', '😐'];
-                const yeet = 'Nouvelle note pour: ' + topic + ' ' + emojis[Math.floor(Math.random()*emojis.length)] + '\n@everyone';
+                const yeet = 'Nouvelle note pour: ' + topic + ' ' + emojis[Math.floor(Math.random() * emojis.length)] + '\n@everyone';
                 map[topic] = true;
                 console.log(yeet);
                 client.channels.find(ch => ch.name == 'notifs-partiels').send(yeet);
