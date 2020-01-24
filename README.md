@@ -2,14 +2,14 @@
 
 Reçois une notif Discord quand une nouvelle note de partiel 2A tombe !
 
-# Rejoindre le serveur
+## Rejoindre le serveur
 
 Le plus simple pour profiter de mon bot est de rejoindre ce serveur !
 Sois sur d'activer les notifs discord dans le salon #notifs-partiels
 
 https://discord.gg/RRSTCx
 
-# Inviter le bot sur son serveur
+## Inviter le bot sur son serveur
 
 Tu peux aussi inviter le bot sur ton serveur Discord. Voici le lien:
 https://discordapp.com/oauth2/authorize?client_id=647771450983579669&scope=bot&permissions=131072
