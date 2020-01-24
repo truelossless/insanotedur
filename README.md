@@ -18,11 +18,11 @@ https://discordapp.com/oauth2/authorize?client_id=647771450983579669&scope=bot&p
 
 Si tu veux modifier/faire ton propre bot Insanotedur:
 
-Crée un fichier config.json à la racine du dossier Insanotedur.
-Ces paramètres doivent être remplis:
-    - username: le nom utilisé pour se connecter à l'ENT Insa
-    - password: le mdp utilisé
-    - frequency: la fréquence de rafraichissement (pas trop fréquent sinon tu risques de te faire ban !)
+Crée un fichier config.json à la racine du dossier Insanotedur.  
+Ces paramètres doivent être remplis:  
+    - username: le nom utilisé pour se connecter à l'ENT Insa  
+    - password: le mdp utilisé  
+    - frequency: la fréquence de rafraichissement (pas trop fréquent sinon tu risques de te faire ban !)  
     - token: le token d'authentification de ton bot discord.
 
 Le bot postera automatiquement un message dans tous les serveurs où il est, dans le channel #notifs-partiels.
