@@ -107,7 +107,7 @@ stdin.addListener("data", d => {
 
         if (debug) console.log('Nouvelle requête commencée.');
         await scrape(false);
-        if (debug) console.log('Requete terminée.');
+        if (debug) console.log('Requête terminée.');
 
     }, config.frequency * 1000);
 })();
@@ -161,15 +161,12 @@ async function scrape(init) {
             if (markSubmitted) {
                 console.log('Note existante pour ' + topic);
             }
-        } else {
-            if (!map[topic] && markSubmitted) {
-
-                const emojis = ['😱', '😳', '😌', '🤕', '😇', '🤠', '😐'];
-                const yeet = 'Nouvelle note pour: ' + topic + ' ' + emojis[Math.floor(Math.random() * emojis.length)] + '\n@everyone';
-                map[topic] = true;
-                console.log(yeet);
-                client.channels.find(ch => ch.name == 'notifs-partiels').send(yeet);
-            }
+        } else if (!map[topic] && markSubmitted) {
+            const emojis = ['😱', '😳', '😌', '🤕', '😇', '🤠', '😐'];
+            const yeet = 'Nouvelle note pour: ' + topic + ' ' + emojis[Math.floor(Math.random() * emojis.length)] + '\n@everyone';
+            map[topic] = true;
+            console.log(yeet);
+            client.channels.find(ch => ch.name == 'notifs-partiels').send(yeet);
         }
     });
 }
