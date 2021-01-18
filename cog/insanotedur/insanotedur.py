@@ -135,18 +135,27 @@ class Insanotedur(commands.Cog):
             # nouvelle note disponible, il faut informer les serveurs
             elif not self.marks_map[topic] and mark_submitted:
                 emojis = ['😱', '😳', '😌', '🤕', '😇', '🤠', '😐']
-                yeet = 'Nouvelle note pour: {} {}\n@everyone'.format(
+                # Première chaine sans le ping
+                yeet = 'Nouvelle note pour: {} {}\n'.format(
                     topic, random.choice(emojis))
                 self.marks_map[topic] = True
                 log.info(yeet)
-                self.broadcast(yeet)
-
-    async def broadcast(self, message):
-        """Envoie un message sur tous les channels notifs-partiels"""
-        for guild in self.bot.guilds:
-            for channel in guild.channels:
-                if channel.name == 'notifs-partiels':
-                    await channel.send(message)
+                # J'ai besoin d'avoir accès au contexte du canal…
+                for guild in self.bot.guilds:
+                    for channel in guild.channels:
+                        if channel.name == "notifs-partiels":
+                            ping = await self.config.guild(guild).pinggroup()
+                            if ping == None:
+                                ping = "@everyone"
+                            else:
+                                ping = "<@&" + str(ping) + ">"
+                            await channel.send(yeet + ping)
+    #async def broadcast(self, message):
+    #    """Envoie un message sur tous les channels notifs-partiels"""
+    #    for guild in self.bot.guilds:
+    #        for channel in guild.channels:
+    #            if channel.name == 'notifs-partiels':
+    #                await channel.send(message)
 
     @ commands.command()
     @ checks.is_owner()
@@ -178,6 +187,38 @@ class Insanotedur(commands.Cog):
 
         await self.config.frequency.set(self.frequency)
         await ctx.send("Fréquence mise à jour")
+
+    @ commands.command()
+    @ checks.is_owner()
+    async def setpinggroup(self, ctx, group):
+        """Définit le group qui doit être ping pour une nouvelle note."""
+        # The context's guild is defined
+        if ctx.guild == None:
+            await ctx.send("Faut m'envoyer ça sur un serveur…")
+            return
+        # Assertions on the group that's given
+        # It does begin with @
+        if not re.compile(r"<@&(\d+)>").match(group):
+            if group == "@everyone":
+                # Special case, remove any current setting
+                await self.config.guild(ctx.guild).pinggroup.clear()
+                await ctx.send("Le 'ping group' a été re-réglé à @everyone. 👍")
+            elif group == "@here":
+                await ctx.send("Je vais pas ping 'here' c'est bizarre... 🤨")
+            else:
+                await ctx.send(f"On dirait pas un groupe : '{group}' 🤔")
+            return
+        # If the group is valid, extract its id
+        # The string given in that case is always '<@&0000000000>'
+        # (but without constant zeros)
+        gid = int(group[3:-1])
+        role = ctx.guild.get_role(gid)
+        if not role:
+            await ctx.send(f"Je ne trouve pas {group}={gid} sur ce serveur...")
+            return
+        # Stuff is saved in the guild-specific config
+        await self.config.guild(ctx.guild).pinggroup.set(gid)
+        await ctx.send(f"Le 'ping group' a été réglé à <@&{gid}>. 👍")
 
     @ commands.command()
     @ checks.admin_or_permissions(manage_guild=True)
