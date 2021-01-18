@@ -22,11 +22,37 @@ class Insanotedur(commands.Cog):
     def set_interval(self, func):
         """Appelle une fonction toutes les x secondes à la Javascript"""
 
-        async def aux():
-            await func()
+        def aux():
+            # This task gets called soon
+            self._loop.create_task(func())
+            # And this loops
             self.set_interval(func)
 
-        self._loop.call_later(self.frequency, self._loop.create_task, aux())
+        # This bit here does a proper call to `call_later` by
+        # giving it a synchronised callback, and the handle returned
+        # actually works when you try and cancel it. Has we tried to
+        # give this a method to create a task, it would crash the
+        # canceling mechanism with `NoneType` errors, because
+        # that task creation would not be a proper callback.
+        self.next_tick = self._loop.call_later(self.frequency, aux)
+
+    async def close(self):
+        try:
+            self.next_tick.cancel()
+            log.info("Cancelled next event loop.")
+        except AttributeError:
+            log.info("Loop handle was None. Skipped.")
+        except asyncio.CancelledError:
+            log.info("Loop handle was already cancelled…")
+
+        try:
+            await self.browser.close()
+            log.info("Browser closed")
+        except asyncio.exceptions.InvalidStateError:
+            log.error("AsyncIO Invalid State upon closing browser")
+
+    def cog_unload(self):
+        task = self._loop.create_task(self.close())
 
     @classmethod
     async def create(cls, bot):
@@ -36,6 +62,7 @@ class Insanotedur(commands.Cog):
         super(commands.Cog, obj).__init__()
 
         obj._loop = asyncio.get_event_loop()
+        obj.next_tick = None
 
         obj.bot = bot
 
